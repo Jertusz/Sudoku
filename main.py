@@ -1,3 +1,7 @@
+from random import shuffle
+from time import sleep
+
+
 class Node:
 
     def __init__(self, row, col):
@@ -54,6 +58,7 @@ class Grid:
     def __init__(self):
         self.size = 9
         self.nodes = self.generate_nodes()
+        self.num_list = [1,2,3,4,5,6,7,8,9]
 
 
     def get_nodes(self):
@@ -82,7 +87,7 @@ class Grid:
         nodes = self.get_nodes()
         for row in nodes:
             for col in range(9):
-                if not nodes[row][col].is_filled():
+                if not row[col].is_filled():
                     return False
 
         return True
@@ -115,6 +120,7 @@ class Grid:
 
 
     def solve(self):
+        global counter
         for i in range(0, 81):
             row = i//9
             col = i%9
@@ -151,20 +157,70 @@ class Grid:
                             if value not in square_vals:
                                 self.get_nodes()[row][col].set_value(value)
                                 if self.check_grid():
-                                    return True
-                            else:
-                                if self.solve():
-                                    return True
-                break
-        print("backtrack")
-        self.print_grid()
+                                    counter += 1
+                                    break
+                                else:
+                                    if self.solve():
+                                        return True
+                    break
         self.get_nodes()[row][col].set_value(0)
 
+    def fill(self):
+        for i in range(0, 81):
+            row = i//9
+            col = i%9
+            if not self.get_nodes()[row][col].is_filled():
+                shuffle(self.num_list)
+                for value in self.num_list:
+                    if value not in self.get_row_values(row) and value not in self.get_col_values(col):
+                        square = []
+                        if row < 3:
+                            if col < 3:
+                                square = self.get_square(3, 3)
+                            elif col < 6:
+                                square = self.get_square(6, 3)
+                            else:
+                                square = self.get_square(9, 3)
+                        elif row < 6:
+                            if col < 3:
+                                square = self.get_square(3, 6)
+                            elif col < 6:
+                                square = self.get_square(6, 6)
+                            else:
+                                square = self.get_square(9, 6)
+                        else:
+                            if col < 3:
+                                square = self.get_square(3, 9)
+                            elif col < 6:
+                                square = self.get_square(6, 9)
+                            else:
+                                square = self.get_square(9, 9)
+                        square_vals = []
+                        for rows in square:
+                            for node in rows:
+                                square_vals.append(node.get_value())
+                        if value not in square_vals:
+                            self.get_nodes()[row][col].set_value(value)
+                            if self.check_grid():
+                                print("im here")
+                                return True
+
+                            else:
+                                if self.fill():
+                                    print("there")
+                                    return True
+                                else:
+                                    self.get_nodes()[row][col].set_value(0)
+
+                break
+
+def main():
+    counter = 0
+    g = Grid()
+    g.print_grid()
+    g.fill()
+    g.print_grid()
+
+main()
 
 
-
-
-
-g = Grid()
-g.print_grid()
-g.solve()
