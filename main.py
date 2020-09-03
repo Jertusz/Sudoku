@@ -1,5 +1,6 @@
-from random import shuffle
+from random import shuffle, randint
 from time import sleep
+import copy
 
 
 class Node:
@@ -59,10 +60,15 @@ class Grid:
         self.size = 9
         self.nodes = self.generate_nodes()
         self.num_list = [1,2,3,4,5,6,7,8,9]
+        self.counter = 0
 
 
     def get_nodes(self):
         return self.nodes
+
+
+    def set_nodes(self, nodes):
+        self.nodes = nodes
 
 
     def generate_nodes(self):
@@ -73,6 +79,14 @@ class Grid:
                 row.append(Node(i, j))
             nodes.append(row)
         return nodes
+
+
+    def get_counter(self):
+        return self.counter
+
+
+    def set_counter(self, val):
+        self.counter = val
 
 
     def print_grid(self):   # for debug purposes only
@@ -120,11 +134,10 @@ class Grid:
 
 
     def solve(self):
-        global counter
         for i in range(0, 81):
             row = i//9
             col = i%9
-            if self.get_nodes()[row][col] == 0:
+            if self.get_nodes()[row][col].get_value() == 0:
                 for value in range(1, 10):
                     if value not in self.get_row_values(row):
                         if value not in self.get_col_values(col):
@@ -151,19 +164,21 @@ class Grid:
                                 else:
                                     square = self.get_square(9, 9)
                             square_vals = []
-                            for row in square:
-                                for node in row:
+                            for rows in square:
+                                for node in rows:
                                     square_vals.append(node.get_value())
                             if value not in square_vals:
                                 self.get_nodes()[row][col].set_value(value)
                                 if self.check_grid():
-                                    counter += 1
+                                    self.set_counter(self.get_counter()+1)
                                     break
                                 else:
                                     if self.solve():
                                         return True
-                    break
+
+                break
         self.get_nodes()[row][col].set_value(0)
+
 
     def fill(self):
         for i in range(0, 81):
@@ -202,12 +217,10 @@ class Grid:
                         if value not in square_vals:
                             self.get_nodes()[row][col].set_value(value)
                             if self.check_grid():
-                                print("im here")
                                 return True
 
                             else:
                                 if self.fill():
-                                    print("there")
                                     return True
                                 else:
                                     self.get_nodes()[row][col].set_value(0)
@@ -215,11 +228,51 @@ class Grid:
                 break
 
 def main():
-    counter = 0
     g = Grid()
+    corr = False
+    tried = []
+
+    while not corr:
+        removed = 0
+        attempts = 0
+        g.set_nodes(g.generate_nodes())
+        g.fill()
+        nodes = g.get_nodes()
+        print(len(tried))
+        vals = []
+        g.set_counter(0)
+        for r in g.get_nodes():
+            rx = []
+            for n in r:
+                rx.append(n.get_value)
+            vals.append(rx)
+        if vals in tried:
+            continue
+        else:
+            tried.append(vals)
+            while attempts < 5:
+                print(f'attempt: {attempts}')
+                while removed < 60:
+                    row = randint(0,8)
+                    col = randint(0,8)
+
+                    backup = g.get_nodes()[row][col].get_value()
+                    if backup != 0:
+                        g.get_nodes()[row][col].set_value(0)
+                        removed += 1
+                    
+
+                print("digits removed, solving")
+                g.solve()
+                if g.get_counter() != 1:
+                    attempts += 1
+                    g.set_nodes(nodes)
+                else:
+                    corr = True
+                    break
+
     g.print_grid()
-    g.fill()
-    g.print_grid()
+
 
 main()
 
